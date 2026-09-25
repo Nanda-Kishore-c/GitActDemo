@@ -18,58 +18,140 @@ jobs:
 
     steps:
 
+      # -----------------------------------------
+      # 1. Checkout complete Git history
+      # -----------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # -----------------------------------------
+      # 2. Display basic information
+      # -----------------------------------------
       - name: Display repository information
         run: |
-          echo "======================================"
-          echo "GitHub Actions Simulation"
-          echo "======================================"
+          echo "=========================================="
+          echo "       GitHub Actions Simulation"
+          echo "=========================================="
 
-          echo "Repository:"
-          echo "${{ github.repository }}"
+          echo "Repository : ${{ github.repository }}"
+          echo "Branch     : ${{ github.ref_name }}"
+          echo "Commit     : ${{ github.sha }}"
+          echo "Actor      : ${{ github.actor }}"
+          echo "Event      : ${{ github.event_name }}"
 
-          echo "Branch:"
-          echo "${{ github.ref_name }}"
+          echo "=========================================="
 
-          echo "Commit:"
-          echo "${{ github.sha }}"
-
-          echo "Author:"
-          echo "${{ github.actor }}"
-
-          echo "Event:"
-          echo "${{ github.event_name }}"
-
-          echo "======================================"
-
+      # -----------------------------------------
+      # 3. Display changed files
+      # -----------------------------------------
       - name: Display changed files
+        shell: bash
         run: |
-          echo "Changed files:"
-          git diff --name-status HEAD^ HEAD || true
 
+          echo "=========================================="
+          echo "           CHANGED FILES"
+          echo "=========================================="
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+
+            echo "Comparing:"
+            echo "Before : $BEFORE"
+            echo "After  : $AFTER"
+            echo ""
+
+            git diff --name-status "$BEFORE" "$AFTER"
+
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+
+            echo "Comparing:"
+            echo "Base : $BASE"
+            echo "Head : $HEAD"
+            echo ""
+
+            git diff --name-status "$BASE" "$HEAD"
+
+          fi
+
+          echo "=========================================="
+
+      # -----------------------------------------
+      # 4. Display actual changes
+      # -----------------------------------------
       - name: Display actual changes
+        shell: bash
         run: |
-          echo "======================================"
-          echo "Actual Changes"
-          echo "======================================"
 
-          git diff HEAD^ HEAD || true
+          echo "=========================================="
+          echo "            ACTUAL CHANGES"
+          echo "=========================================="
 
+          if [ "${{ github.event_name }}" = "push" ]; then
+
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+
+            git diff "$BEFORE" "$AFTER"
+
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+
+            git diff "$BASE" "$HEAD"
+
+          fi
+
+          echo "=========================================="
+
+      # -----------------------------------------
+      # 5. Basic project validation
+      # -----------------------------------------
       - name: Run validation
+        shell: bash
         run: |
-          echo "======================================"
-          echo "Running validation..."
-          echo "======================================"
+
+          echo "=========================================="
+          echo "             VALIDATION"
+          echo "=========================================="
+
+          echo "Checking README.md..."
 
           test -f README.md
+
+          echo "README.md exists."
+
+          echo ""
+          echo "Checking users directory..."
+
           test -d users
 
+          echo "users directory exists."
+
+          echo ""
           echo "Validation successful!"
 
+          echo "=========================================="
+
+      # -----------------------------------------
+      # 6. Workflow completion
+      # -----------------------------------------
       - name: Workflow completed
         run: |
-          echo "======================================"
-          echo "Workflow completed successfully!"
-          echo "======================================"
+
+          echo "=========================================="
+          echo "       WORKFLOW COMPLETED"
+          echo "=========================================="
+
+          echo "Repository : ${{ github.repository }}"
+          echo "Branch     : ${{ github.ref_name }}"
+          echo "Status     : SUCCESS"
+
+          echo "=========================================="

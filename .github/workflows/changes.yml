@@ -1,0 +1,75 @@
+name: Display Changes
+
+on:
+  push:
+    branches:
+      - main
+      - user1
+      - user2
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  show-changes:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Display repository information
+        run: |
+          echo "======================================"
+          echo "GitHub Actions Simulation"
+          echo "======================================"
+
+          echo "Repository:"
+          echo "${{ github.repository }}"
+
+          echo "Branch:"
+          echo "${{ github.ref_name }}"
+
+          echo "Commit:"
+          echo "${{ github.sha }}"
+
+          echo "Author:"
+          echo "${{ github.actor }}"
+
+          echo "Event:"
+          echo "${{ github.event_name }}"
+
+          echo "======================================"
+
+      - name: Display changed files
+        run: |
+          echo "Changed files:"
+          git diff --name-status HEAD^ HEAD || true
+
+      - name: Display actual changes
+        run: |
+          echo "======================================"
+          echo "Actual Changes"
+          echo "======================================"
+
+          git diff HEAD^ HEAD || true
+
+      - name: Run validation
+        run: |
+          echo "======================================"
+          echo "Running validation..."
+          echo "======================================"
+
+          test -f README.md
+          test -d users
+
+          echo "Validation successful!"
+
+      - name: Workflow completed
+        run: |
+          echo "======================================"
+          echo "Workflow completed successfully!"
+          echo "======================================"

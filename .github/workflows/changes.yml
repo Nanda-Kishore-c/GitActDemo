@@ -1,17 +1,25 @@
 name: Display Changes
 
 on:
+
   push:
+
     branches:
+
       - main
+
       - user1
+
       - user2
 
   pull_request:
+
     branches:
+
       - main
 
 jobs:
+
   show-changes:
 
     runs-on: ubuntu-latest
@@ -19,57 +27,145 @@ jobs:
     steps:
 
       - name: Checkout repository
+
         uses: actions/checkout@v4
 
+        with:
+
+          fetch-depth: 0
+
       - name: Display repository information
+
         run: |
+
           echo "======================================"
-          echo "GitHub Actions Simulation"
+
+          echo "       GitHub Actions Simulation"
+
           echo "======================================"
 
-          echo "Repository:"
-          echo "${{ github.repository }}"
+          echo "Repository : ${{ github.repository }}"
 
-          echo "Branch:"
-          echo "${{ github.ref_name }}"
+          echo "Branch     : ${{ github.ref_name }}"
 
-          echo "Commit:"
-          echo "${{ github.sha }}"
+          echo "Commit     : ${{ github.sha }}"
 
-          echo "Author:"
-          echo "${{ github.actor }}"
+          echo "Actor      : ${{ github.actor }}"
 
-          echo "Event:"
-          echo "${{ github.event_name }}"
+          echo "Event      : ${{ github.event_name }}"
 
           echo "======================================"
 
       - name: Display changed files
+
+        shell: bash
+
         run: |
-          echo "Changed files:"
-          git diff --name-status HEAD^ HEAD || true
+
+          echo "======================================"
+
+          echo "           CHANGED FILES"
+
+          echo "======================================"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+
+            BEFORE="${{ github.event.before }}"
+
+            AFTER="${{ github.sha }}"
+
+            echo "Before: $BEFORE"
+
+            echo "After : $AFTER"
+
+            echo ""
+
+            git diff --name-status "$BEFORE" "$AFTER"
+
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+
+            BASE="${{ github.event.pull_request.base.sha }}"
+
+            HEAD="${{ github.event.pull_request.head.sha }}"
+
+            echo "Base: $BASE"
+
+            echo "Head: $HEAD"
+
+            echo ""
+
+            git diff --name-status "$BASE" "$HEAD"
+
+          fi
+
+          echo "======================================"
 
       - name: Display actual changes
+
+        shell: bash
+
         run: |
-          echo "======================================"
-          echo "Actual Changes"
+
           echo "======================================"
 
-          git diff HEAD^ HEAD || true
+          echo "            ACTUAL CHANGES"
+
+          echo "======================================"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+
+            BEFORE="${{ github.event.before }}"
+
+            AFTER="${{ github.sha }}"
+
+            git diff "$BEFORE" "$AFTER"
+
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+
+            BASE="${{ github.event.pull_request.base.sha }}"
+
+            HEAD="${{ github.event.pull_request.head.sha }}"
+
+            git diff "$BASE" "$HEAD"
+
+          fi
+
+          echo "======================================"
 
       - name: Run validation
+
+        shell: bash
+
         run: |
+
           echo "======================================"
-          echo "Running validation..."
+
+          echo "             VALIDATION"
+
           echo "======================================"
 
           test -f README.md
+
           test -d users
 
           echo "Validation successful!"
 
-      - name: Workflow completed
-        run: |
           echo "======================================"
-          echo "Workflow completed successfully!"
+
+      - name: Workflow completed
+
+        run: |
+
+          echo "======================================"
+
+          echo "       WORKFLOW COMPLETED"
+
+          echo "======================================"
+
+          echo "Repository : ${{ github.repository }}"
+
+          echo "Branch     : ${{ github.ref_name }}"
+
+          echo "Status     : SUCCESS"
+
           echo "======================================"
